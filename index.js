@@ -149,7 +149,7 @@ function move_placer(row_id,col_id,mover){
 
 // function that checks if the player or ai has won
 
-function winner_checker(player){
+function winner_checker(player,board_matrix){
         // Check rows
         for (let i = 0; i < 3; i++) {
             if (board_matrix[i][0] === player && board_matrix[i][1] === player && board_matrix[i][2] === player) {
@@ -181,7 +181,7 @@ function winner_checker(player){
 
 //function that checks if it is a draw
 
-function draw_checker(){
+function draw_checker(board_matrix){
     for(let i=0;i<3;i++){
         for(let j=0;j<3;j++){
             if(board_matrix[i][j] == ' '){
@@ -192,6 +192,81 @@ function draw_checker(){
     return true;
 }
 
+function winner_draw_checker(player_move_decider){
+    if(player_move_decider){
+        if(winner_checker('O',board_matrix)){
+            alert("player won");
+        }
+    }else{
+        if(winner_checker('X',board_matrix)){
+            alert("comp won");
+        }
+    }
+}
+
+//function for min max algorith
+//O-plAyer  || X- computer
+function min_max_alogorithm(board_matrix,depth,move){ // move -> true then it is generating cmp move else it is generating human move
+    if(winner_checker('X',board_matrix)){ // if computer wins then return +1 as it the highest reward
+        return 1;
+    }
+    else if(winner_checker('O',board_matrix)){ // if player wins then return -1 as it the lowest reward
+        return -1; 
+    }else if(draw_checker(board_matrix)){ // if the board is full then return 0 as it is a netural value
+        return 0;
+    }
+
+    if(move){
+        let best_score=-1000;
+        for(let i=0;i<3;i++){
+            for(let j=0;j<3;j++){
+                if(board_matrix[i][j] ==' '){
+                    board_matrix[i][j]='X';
+                    let score=min_max_alogorithm(board_matrix,depth+1,false);
+                    board_matrix[i][j]=' ';
+                    if(score>best_score){
+                        best_score=score;
+                    }
+                }
+            }
+        }
+        return best_score;
+    }else{
+        let best_score=1000;
+        for(let i=0;i<3;i++){
+            for(let j=0;j<3;j++){
+                if(board_matrix[i][j] ==' '){
+                    board_matrix[i][j]='O';
+                    score=min_max_alogorithm(board_matrix,depth+1,true);
+                    board_matrix[i][j]=' ';
+                    if(score<best_score){
+                        best_score=score;
+                    }
+                }
+            }
+        }
+        return best_score;
+    }
+}
+
+function main_min_max_function(){
+    let best_score=-1000;
+    let move=[-1,-1];
+    for(let i =0;i<3;i++){
+        for(let j=0;j<3;j++){
+            if(board_matrix[i][j]==' '){
+                board_matrix[i][j]='X';
+                score=min_max_alogorithm(board_matrix,0,true);
+                board_matrix[i][j]=' ';
+                if(score>best_score){
+                    best_score=score;
+                    move=[i,j];
+                }
+            }
+        }
+    }
+    return move;
+}
 
 //function that gets the player move index and generates the ai move 
 //O-plAyer  || X- computer
@@ -201,18 +276,17 @@ function main(row_id,col_id){
     }else{
         alert("ALREADY PLACED...!")
     }
-    if(player_move_decider){
-        if(winner_checker('O')){
-            alert("player won");
-        }
-    }else{
-        if(winner_checker('X')){
-            alert("comp won");
-        }
+    winner_draw_checker(player_move_decider);
+    if(draw_checker(board_matrix)){
+        alert("math is draw");
     }
     //changing the player playing into comp move
     player_move_decider=(player_move_decider)?false:true;
-    if(draw_checker()){
+    let computer_move=main_min_max_function();
+    move_placer(computer_move[0],computer_move[1],player_move_decider);
+    winner_draw_checker(player_move_decider);
+    if(draw_checker(board_matrix)){
         alert("math is draw");
     }
+    player_move_decider=(player_move_decider)?false:true;
 }
